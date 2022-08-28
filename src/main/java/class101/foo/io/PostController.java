@@ -2,6 +2,7 @@ package class101.foo.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,21 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class PostController {
-
-    private static Integer PAGE_SIZE = 20;
-
-    @Autowired
-    PostRepository postRepository;
-
-    @Autowired
-    Producer producer;
-
-    @Autowired
-    ObjectMapper objectMapper;
-
-    @Autowired
-    PostCacheService postCacheService;
+    private final PostRepository postRepository;
+    private final Producer producer;
+    private final ObjectMapper objectMapper;
 
     // 1. 글을 작성한다.
     @PostMapping("/post")
@@ -35,24 +26,8 @@ public class PostController {
         return post;
     }
 
-    @GetMapping("/posts")
-    public Page<Post> getPostList(@RequestParam(defaultValue = "1") Integer page) {
-        if (page.equals(1)) {
-            return postCacheService.getFirstPostPage();
-        } else {
-            return postRepository.findAll(
-                    PageRequest.of(page - 1, PAGE_SIZE, Sort.by("id").descending())
-            );
-        }
-    }
-
-    @GetMapping("/post/{id}")
-    public Post getPostById(@PathVariable Long id) {
-        return postRepository.findById(id).get();
-    }
-
     @GetMapping("/search")
     public List<Post> getPostById(@RequestParam String content) {
-        return postRepository.findByContentContains(content);
+        return postRepository.findByContent(content);
     }
 }
